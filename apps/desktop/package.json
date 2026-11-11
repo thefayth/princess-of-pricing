@@ -1,0 +1,51 @@
+{
+  "name": "@pop/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build": "npm run build:renderer && npm run build:main",
+    "package:win": "npm run build && electron-builder --win nsis portable",
+    "self-test": "electron . --self-test",
+    "check": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit"
+  },
+  "dependencies": {
+    "@pop/contracts": "*",
+    "@pop/domain": "*",
+    "@pop/ui": "*",
+    "better-sqlite3-multiple-ciphers": "12.11.1",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "25.5.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "electron": "43.1.1",
+    "electron-builder": "26.15.3",
+    "typescript": "5.9.3",
+    "vite": "8.1.5"
+  },
+  "build": {
+    "appId": "com.faithcheltenham.princeofpricing",
+    "productName": "Prince of Pricing",
+    "asar": true,
+    "asarUnpack": ["node_modules/better-sqlite3-multiple-ciphers/**/*"],
+    "files": ["dist/**/*", "package.json"],
+    "directories": { "output": "release" },
+    "artifactName": "${name}-${version}-${arch}.${ext}",
+    "win": { "target": ["nsis", "portable"] },
+    "nsis": {
+      "artifactName": "PrinceOfPricingSetup.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "portable": { "artifactName": "PrinceOfPricing.exe" }
+  }
+}

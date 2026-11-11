@@ -1,0 +1,1308 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceType {
+  PERSONAL
+  BUSINESS
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  BOOKKEEPER
+  VIEWER
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  INCOME
+  EXPENSE
+}
+
+enum AccountSubtype {
+  CASH
+  BANK
+  ACCOUNTS_RECEIVABLE
+  INVENTORY
+  FIXED_ASSET
+  CREDIT_CARD
+  ACCOUNTS_PAYABLE
+  TAX_PAYABLE
+  LOAN
+  OWNER_EQUITY
+  RETAINED_EARNINGS
+  REVENUE
+  OTHER_INCOME
+  COST_OF_GOODS_SOLD
+  OPERATING_EXPENSE
+  PAYROLL_EXPENSE
+  TAX_EXPENSE
+  OTHER_EXPENSE
+}
+
+enum EntryStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum LedgerSource {
+  MANUAL
+  BANK_IMPORT
+  INVOICE
+  BILL
+  ADJUSTMENT
+  TRANSFER
+  OPENING_BALANCE
+}
+
+enum DocumentType {
+  BANK_STATEMENT
+  RECEIPT
+  INVOICE
+  BILL
+  CONTRACT
+  OTHER
+}
+
+enum CounterpartyType {
+  CUSTOMER
+  VENDOR
+  BOTH
+}
+
+enum InvoiceDirection {
+  OUTGOING
+  INCOMING
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOIDED
+}
+
+enum PopConnectorKind {
+  FAD_EXPORT
+  GMAIL_METADATA
+  MERCHANT_SOURCE
+  BROWSER_EXTENSION
+}
+
+enum PopConnectorStatus {
+  DISCONNECTED
+  READY
+  CONNECTED
+  NEEDS_ATTENTION
+}
+
+enum OfferStatus {
+  ACTIVE
+  EXPIRING
+  EXPIRED
+}
+
+enum WatchStatus {
+  WATCHING
+  TARGET_HIT
+  PAUSED
+}
+
+enum SubscriptionCadence {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  UNKNOWN
+}
+
+enum PopSubscriptionStatus {
+  ACTIVE
+  CANCEL_PENDING
+  CANCELLED
+  PAUSED
+}
+
+enum CancellationStatus {
+  OPEN
+  USER_ACTION_REQUIRED
+  COMPLETED
+  DISMISSED
+}
+
+enum RecommendationType {
+  CANCEL_SUBSCRIPTION
+  BUY_PRICE_DROP
+  USE_OWNED_CARD
+  CONSIDER_NEW_CARD
+  EXPIRING_OFFER
+}
+
+enum EvidenceKind {
+  MERCHANT_PAGE
+  EMAIL_METADATA
+  FAD_EXPORT
+  USER_CONFIRMATION
+  REWARD_TERMS
+  PRICE_OBSERVATION
+}
+
+enum NotificationKind {
+  PRICE_DROP
+  RENEWAL
+  OFFER_EXPIRING
+  SYNC_CONFLICT
+}
+
+enum SubscriptionServiceCategory {
+  MUSIC
+  VIDEO
+  SOFTWARE
+  NEWS
+  OTHER
+}
+
+enum DealEligibility {
+  NEW_ONLY
+  RETURNING_ONLY
+  STUDENT
+  FAMILY
+  DEVICE
+  PARTNER
+  ANY
+  UNKNOWN
+}
+
+enum DealVerificationState {
+  OBSERVED
+  CHECKED
+  ELIGIBILITY_UNCONFIRMED
+  EXPIRED
+  REJECTED
+}
+
+enum DealOfferStatus {
+  ACTIVE
+  EXPIRING
+  EXPIRED
+  REJECTED
+}
+
+enum DuplicateCandidateType {
+  IMPORT_DUPLICATE
+  ACTIVE_SERVICE_DUPLICATE
+}
+
+enum DuplicateCandidateStatus {
+  NEW
+  PENDING_REVIEW
+  AUTO_CANCEL_ELIGIBLE
+  CANCEL_IN_PROGRESS
+  CANCELLED
+  KEPT
+  FAILED
+  CONFLICT
+}
+
+enum CancellationRunStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+  FAILED
+}
+
+enum PointBalanceKind {
+  LOYALTY_POINTS
+  POP_PROGRESS
+}
+
+enum PointsRegisterEntryType {
+  EARNED
+  EXPECTED
+  REVERSAL
+  EXPIRATION
+  REDEMPTION
+  TRANSFER
+  MISSED_ESTIMATE
+  PROGRESS_AWARD
+  CORRECTION
+}
+
+enum PointsRegisterStatus {
+  CONFIRMED
+  PENDING
+  ESTIMATED
+  REVERSED
+}
+
+enum FinancialGoalKind {
+  EMERGENCY_FUND
+  DEBT_PAYOFF
+  INVESTING
+  CASH_SAVINGS
+  PLANNED_PURCHASE
+  TRAVEL
+}
+
+enum FinancialGoalStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum GameStopStatus {
+  ACTIVE
+  PAUSED
+  RETIRED
+}
+
+enum GameStopTaskType {
+  COMPARE_OFFERS
+  SELECT_CARD
+  CHECK_REWARD_RULE
+  FIND_PROMOTION
+  SCAN_PRICE
+  REVIEW_BENEFIT
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  passwordHash          String
+  fullName              String
+  phoneNumber           String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  memberships           WorkspaceMember[]
+  createdJournalEntries JournalEntry[]         @relation("JournalEntryCreator")
+  createdDocuments      Document[]             @relation("DocumentUploader")
+  ownedWorkspaces       Workspace[]            @relation("WorkspaceOwner")
+  auditEvents           AuditEvent[]           @relation("AuditActor")
+  popDevices            PopDevice[]
+  devicePairings        DevicePairing[]
+  pointsModePreferences PointsModePreference[]
+}
+
+model Workspace {
+  id                    String                 @id @default(cuid())
+  name                  String
+  slug                  String                 @unique
+  type                  WorkspaceType
+  baseCurrency          String                 @default("USD")
+  settings              Json?
+  ownerUserId           String
+  ownerUser             User                   @relation("WorkspaceOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  memberships           WorkspaceMember[]
+  accounts              Account[]
+  bankAccounts          BankAccount[]
+  documents             Document[]
+  counterparties        Counterparty[]
+  journalEntries        JournalEntry[]
+  invoices              Invoice[]
+  auditEvents           AuditEvent[]
+  popConnectors         PopConnector[]
+  merchants             Merchant[]
+  products              Product[]
+  offers                Offer[]
+  priceObservations     PriceObservation[]
+  priceWatches          PriceWatch[]
+  popSubscriptions      PopSubscription[]
+  cancellationTasks     CancellationTask[]
+  userCards             UserCard[]
+  rewardRules           RewardRule[]
+  recommendations       Recommendation[]
+  evidenceRecords       EvidenceRecord[]
+  actionReceipts        ActionReceipt[]
+  popNotifications      PopNotification[]
+  popDevices            PopDevice[]
+  devicePairings        DevicePairing[]
+  syncEvents            SyncEvent[]
+  idempotencyRecords    IdempotencyRecord[]
+  subscriptionServices  SubscriptionService[]
+  dealOffers            DealOffer[]
+  dealAlerts            DealAlert[]
+  duplicateCandidates   DuplicateCandidate[]
+  automationPolicy      AutomationPolicy?
+  cancellationRuns      CancellationRun[]
+  pointsAccounts        PointsAccount[]
+  pointsRegister        PointsRegisterEntry[]
+  pointValuations       PointValuation[]
+  spendingProfile       SpendingProfile?
+  financialGoals        FinancialGoal[]
+  rewardBenefits        RewardBenefit[]
+  benefitUsages         BenefitUsage[]
+  rewardScenarios       RewardScenario[]
+  gameStops             GameStop[]
+  gameStopEvents        GameStopEvent[]
+  gameStopSessions      GameStopSession[]
+  gameStopCompletions   GameStopCompletion[]
+  progressAwards        ProgressAward[]
+  pointsModePreferences PointsModePreference[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(VIEWER)
+  createdAt   DateTime      @default(now())
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model Account {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  code         String
+  name         String
+  type         AccountType
+  subtype      AccountSubtype?
+  currency     String?
+  isSystem     Boolean         @default(false)
+  isArchived   Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  bankAccount  BankAccount?
+  invoiceLines InvoiceLine[]
+
+  @@unique([workspaceId, code])
+  @@index([workspaceId, type, isArchived])
+}
+
+model BankAccount {
+  id              String     @id @default(cuid())
+  workspaceId     String
+  accountId       String     @unique
+  institutionName String
+  displayName     String
+  maskedNumber    String?
+  provider        String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account         Account    @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  documents       Document[]
+
+  @@unique([workspaceId, displayName])
+  @@index([workspaceId])
+}
+
+model Document {
+  id                   String       @id @default(cuid())
+  workspaceId          String
+  uploadedById         String?
+  bankAccountId        String?
+  type                 DocumentType
+  fileName             String
+  storageKey           String
+  mimeType             String?
+  sizeBytes            Int?
+  statementPeriodStart DateTime?
+  statementPeriodEnd   DateTime?
+  createdAt            DateTime     @default(now())
+  workspace            Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploadedBy           User?        @relation("DocumentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  bankAccount          BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  invoice              Invoice?
+
+  @@index([workspaceId, type])
+}
+
+model Counterparty {
+  id           String           @id @default(cuid())
+  workspaceId  String
+  type         CounterpartyType @default(VENDOR)
+  legalName    String
+  email        String?
+  phone        String?
+  taxId        String?
+  notes        String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  workspace    Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  invoices     Invoice[]
+
+  @@index([workspaceId, legalName])
+}
+
+model JournalEntry {
+  id          String        @id @default(cuid())
+  workspaceId String
+  reference   String?
+  memo        String?
+  entryDate   DateTime
+  status      EntryStatus   @default(POSTED)
+  source      LedgerSource  @default(MANUAL)
+  sourceId    String?
+  createdById String?
+  postedAt    DateTime?
+  voidedAt    DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User?         @relation("JournalEntryCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  lines       JournalLine[]
+  invoice     Invoice?
+
+  @@index([workspaceId, entryDate, status])
+}
+
+model JournalLine {
+  id             String        @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  counterpartyId String?
+  description    String?
+  debit          Decimal       @default(0) @db.Decimal(14, 2)
+  credit         Decimal       @default(0) @db.Decimal(14, 2)
+  createdAt      DateTime      @default(now())
+  journalEntry   JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account        Account       @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  counterparty   Counterparty? @relation(fields: [counterpartyId], references: [id], onDelete: SetNull)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@index([counterpartyId])
+}
+
+model Invoice {
+  id             String           @id @default(cuid())
+  workspaceId    String
+  counterpartyId String
+  documentId     String?          @unique
+  journalEntryId String?          @unique
+  direction      InvoiceDirection
+  status         InvoiceStatus    @default(DRAFT)
+  invoiceNumber  String
+  issueDate      DateTime
+  dueDate        DateTime?
+  currency       String           @default("USD")
+  memo           String?
+  subtotal       Decimal          @default(0) @db.Decimal(14, 2)
+  taxAmount      Decimal          @default(0) @db.Decimal(14, 2)
+  totalAmount    Decimal          @default(0) @db.Decimal(14, 2)
+  balanceDue     Decimal          @default(0) @db.Decimal(14, 2)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  counterparty   Counterparty     @relation(fields: [counterpartyId], references: [id], onDelete: Restrict)
+  document       Document?        @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  journalEntry   JournalEntry?    @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+  lines          InvoiceLine[]
+
+  @@unique([workspaceId, invoiceNumber])
+  @@index([workspaceId, status, dueDate])
+}
+
+model InvoiceLine {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  accountId   String
+  description String
+  quantity    Decimal  @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal  @db.Decimal(14, 2)
+  lineTotal   Decimal  @db.Decimal(14, 2)
+  createdAt   DateTime @default(now())
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+}
+
+model AuditEvent {
+  id          String    @id @default(cuid())
+  workspaceId String
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor       User?     @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+}
+
+model PopConnector {
+  id              String             @id @default(cuid())
+  workspaceId     String
+  kind            PopConnectorKind
+  name            String
+  status          PopConnectorStatus @default(DISCONNECTED)
+  detail          String?
+  config          Json?
+  lastSyncAt      DateTime?
+  lastContentHash String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  workspace       Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, kind, name])
+  @@index([workspaceId, status])
+}
+
+model Merchant {
+  id           String             @id @default(cuid())
+  workspaceId  String
+  name         String
+  domain       String?
+  category     String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  workspace    Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  products     Product[]
+  offers       Offer[]
+  observations PriceObservation[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId, domain])
+}
+
+model Product {
+  id           String             @id @default(cuid())
+  workspaceId  String
+  merchantId   String?
+  title        String
+  sku          String?
+  canonicalUrl String?
+  unitSize     String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  workspace    Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  merchant     Merchant?          @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  offers       Offer[]
+  observations PriceObservation[]
+  watches      PriceWatch[]
+
+  @@unique([workspaceId, canonicalUrl])
+  @@index([workspaceId, title])
+}
+
+model Offer {
+  id                 String      @id @default(cuid())
+  workspaceId        String
+  merchantId         String
+  productId          String?
+  title              String
+  currentPriceCents  Int
+  originalPriceCents Int?
+  currency           String      @default("USD")
+  status             OfferStatus @default(ACTIVE)
+  sourceUrl          String?
+  validFrom          DateTime?
+  validThrough       DateTime?
+  observedAt         DateTime
+  contentHash        String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  workspace          Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  merchant           Merchant    @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  product            Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, contentHash])
+  @@index([workspaceId, status, validThrough])
+}
+
+model PriceObservation {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  merchantId     String
+  productId      String
+  priceCents     Int
+  unitPriceCents Int?
+  currency       String    @default("USD")
+  sourceUrl      String?
+  observedAt     DateTime
+  contentHash    String
+  idempotencyKey String
+  createdAt      DateTime  @default(now())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  merchant       Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  product        Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, productId, observedAt])
+}
+
+model PriceWatch {
+  id                String      @id @default(cuid())
+  workspaceId       String
+  productId         String?
+  title             String
+  merchantName      String
+  targetPriceCents  Int
+  currentPriceCents Int?
+  currency          String      @default("USD")
+  status            WatchStatus @default(WATCHING)
+  lastCheckedAt     DateTime?
+  version           Int         @default(1)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  workspace         Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  product           Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+}
+
+model PopSubscription {
+  id                   String                @id @default(cuid())
+  workspaceId          String
+  merchantName         String
+  serviceKey           String?
+  planName             String?
+  billingChannel       String?
+  accountHintHash      String?
+  lastUsedAt           DateTime?
+  isBundle             Boolean               @default(false)
+  isFamilyOrHousehold  Boolean               @default(false)
+  sourceKind           String?
+  amountCents          Int
+  currency             String                @default("USD")
+  cadence              SubscriptionCadence   @default(UNKNOWN)
+  nextRenewalAt        DateTime?
+  status               PopSubscriptionStatus @default(ACTIVE)
+  evidenceIds          Json                  @default("[]")
+  sourceFingerprint    String?
+  version              Int                   @default(1)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  workspace            Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cancellationTasks    CancellationTask[]
+  duplicateCandidatesA DuplicateCandidate[]  @relation("DuplicateSubscriptionA")
+  duplicateCandidatesB DuplicateCandidate[]  @relation("DuplicateSubscriptionB")
+  cancellationRuns     CancellationRun[]
+
+  @@unique([workspaceId, sourceFingerprint])
+  @@index([workspaceId, status, nextRenewalAt])
+  @@index([workspaceId, serviceKey, status])
+}
+
+model SubscriptionService {
+  id                  String                      @id @default(cuid())
+  workspaceId         String
+  canonicalKey        String
+  displayName         String
+  aliases             Json                        @default("[]")
+  domains             Json                        @default("[]")
+  category            SubscriptionServiceCategory @default(OTHER)
+  automationSupported Boolean                     @default(false)
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+  workspace           Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  dealOffers          DealOffer[]
+  dealAlerts          DealAlert[]
+
+  @@unique([workspaceId, canonicalKey])
+  @@index([workspaceId, category])
+}
+
+model DealOffer {
+  id                    String                @id @default(cuid())
+  workspaceId           String
+  serviceId             String?
+  serviceKey            String
+  title                 String
+  planName              String
+  eligibility           DealEligibility       @default(UNKNOWN)
+  priceCents            Int
+  renewalPriceCents     Int?
+  trialDays             Int?
+  currency              String                @default("USD")
+  status                DealOfferStatus       @default(ACTIVE)
+  verification          DealVerificationState @default(OBSERVED)
+  sourceName            String
+  sourceUrl             String?
+  validFrom             DateTime?
+  validThrough          DateTime?
+  observedAt            DateTime
+  contentHash           String
+  evidenceIds           Json                  @default("[]")
+  confidenceBasisPoints Int                   @default(0)
+  terms                 Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  workspace             Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  service               SubscriptionService?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  alerts                DealAlert[]
+
+  @@unique([workspaceId, contentHash])
+  @@index([workspaceId, serviceKey, eligibility, status])
+  @@index([workspaceId, validThrough])
+}
+
+model DealAlert {
+  id          String               @id @default(cuid())
+  workspaceId String
+  dealOfferId String
+  serviceId   String?
+  alertType   String
+  fingerprint String
+  title       String
+  detail      String
+  readAt      DateTime?
+  createdAt   DateTime             @default(now())
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  dealOffer   DealOffer            @relation(fields: [dealOfferId], references: [id], onDelete: Cascade)
+  service     SubscriptionService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, fingerprint])
+  @@index([workspaceId, readAt, createdAt])
+}
+
+model DuplicateCandidate {
+  id                    String                   @id @default(cuid())
+  workspaceId           String
+  type                  DuplicateCandidateType
+  subscriptionAId       String
+  subscriptionBId       String
+  serviceKey            String
+  confidenceBasisPoints Int
+  status                DuplicateCandidateStatus @default(NEW)
+  reasons               Json
+  evidenceIds           Json                     @default("[]")
+  version               Int                      @default(1)
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  workspace             Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  subscriptionA         PopSubscription          @relation("DuplicateSubscriptionA", fields: [subscriptionAId], references: [id], onDelete: Cascade)
+  subscriptionB         PopSubscription          @relation("DuplicateSubscriptionB", fields: [subscriptionBId], references: [id], onDelete: Cascade)
+  cancellationRuns      CancellationRun[]
+
+  @@unique([workspaceId, subscriptionAId, subscriptionBId, type])
+  @@index([workspaceId, status])
+}
+
+model AutomationPolicy {
+  id                        String    @id @default(cuid())
+  workspaceId               String    @unique
+  enabled                   Boolean   @default(false)
+  autoCancelExactDuplicates Boolean   @default(false)
+  protectedServiceKeys      Json      @default("[]")
+  protectedPlanKinds        Json      @default("[\"family\",\"bundle\",\"annual\",\"prepaid\",\"contract\"]")
+  recentlyUsedDays          Int       @default(30)
+  maxMonthlyAmountCents     Int?
+  dailyDealAlerts           Boolean   @default(true)
+  renewalAlerts             Boolean   @default(true)
+  version                   Int       @default(1)
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+  workspace                 Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model CancellationRun {
+  id             String                @id @default(cuid())
+  workspaceId    String
+  candidateId    String
+  subscriptionId String
+  status         CancellationRunStatus @default(PLANNED)
+  adapterKey     String
+  reason         String
+  failureCode    String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  evidenceIds    Json                  @default("[]")
+  version        Int                   @default(1)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  workspace      Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  candidate      DuplicateCandidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subscription   PopSubscription       @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status, createdAt])
+}
+
+model CancellationTask {
+  id             String             @id @default(cuid())
+  workspaceId    String
+  subscriptionId String
+  merchantName   String
+  status         CancellationStatus @default(OPEN)
+  instructions   Json
+  actionUrl      String?
+  version        Int                @default(1)
+  completedAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  workspace      Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  subscription   PopSubscription    @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+}
+
+model UserCard {
+  id             String          @id @default(cuid())
+  workspaceId    String
+  issuer         String
+  productName    String
+  network        String
+  lastFour       String?
+  annualFeeCents Int             @default(0)
+  currency       String          @default("USD")
+  version        Int             @default(1)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  rewardRules    RewardRule[]
+  rewardBenefits RewardBenefit[]
+
+  @@index([workspaceId, issuer])
+}
+
+model PointsAccount {
+  id                          String                @id @default(cuid())
+  workspaceId                 String
+  name                        String
+  programKey                  String
+  kind                        PointBalanceKind
+  balance                     Int                   @default(0)
+  expiresAt                   DateTime?
+  lastEarnedAt                DateTime?
+  cashValueCentsPerThousand   Int?
+  travelValueCentsPerThousand Int?
+  version                     Int                   @default(1)
+  createdAt                   DateTime              @default(now())
+  updatedAt                   DateTime              @updatedAt
+  workspace                   Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  registerEntries             PointsRegisterEntry[]
+  valuations                  PointValuation[]
+
+  @@unique([workspaceId, programKey, kind])
+  @@index([workspaceId, kind, expiresAt])
+}
+
+model PointsRegisterEntry {
+  id                        String                  @id @default(cuid())
+  workspaceId               String
+  accountId                 String?
+  balanceKind               PointBalanceKind
+  type                      PointsRegisterEntryType
+  status                    PointsRegisterStatus
+  pointsDelta               Int
+  label                     String
+  merchantName              String?
+  category                  String?
+  city                      String?
+  coarseArea                String?
+  occurredAt                DateTime
+  estimatedCashValueCents   Int?
+  estimatedTravelValueCents Int?
+  evidenceIds               Json                    @default("[]")
+  idempotencyKey            String
+  correctionOfId            String?
+  metadata                  Json?
+  createdAt                 DateTime                @default(now())
+  workspace                 Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account                   PointsAccount?          @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  correctionOf              PointsRegisterEntry?    @relation("PointsCorrections", fields: [correctionOfId], references: [id], onDelete: SetNull)
+  corrections               PointsRegisterEntry[]   @relation("PointsCorrections")
+  progressAward             ProgressAward?
+
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, occurredAt])
+  @@index([workspaceId, balanceKind, status, type])
+  @@index([workspaceId, merchantName, category, occurredAt])
+}
+
+model PointValuation {
+  id                          String         @id @default(cuid())
+  workspaceId                 String
+  accountId                   String?
+  programKey                  String
+  cashValueCentsPerThousand   Int
+  travelValueCentsPerThousand Int?
+  sourceName                  String
+  sourceUrl                   String?
+  observedAt                  DateTime
+  validThrough                DateTime?
+  evidenceIds                 Json           @default("[]")
+  createdAt                   DateTime       @default(now())
+  workspace                   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account                     PointsAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, programKey, observedAt])
+}
+
+model SpendingProfile {
+  id               String    @id @default(cuid())
+  workspaceId      String    @unique
+  lookbackDays     Int       @default(365)
+  categorySummary  Json      @default("[]")
+  merchantSummary  Json      @default("[]")
+  lastCalculatedAt DateTime?
+  version          Int       @default(1)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model FinancialGoal {
+  id              String              @id @default(cuid())
+  workspaceId     String
+  kind            FinancialGoalKind
+  name            String
+  targetCents     Int
+  capturedCents   Int                 @default(0)
+  currency        String              @default("USD")
+  status          FinancialGoalStatus @default(ACTIVE)
+  version         Int                 @default(1)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  workspace       Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  rewardScenarios RewardScenario[]
+
+  @@index([workspaceId, status, kind])
+}
+
+model RewardBenefit {
+  id                 String         @id @default(cuid())
+  workspaceId        String
+  userCardId         String?
+  title              String
+  category           String
+  valueCents         Int
+  currency           String         @default("USD")
+  cadence            String
+  validThrough       DateTime?
+  activationRequired Boolean        @default(false)
+  evidenceIds        Json           @default("[]")
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  workspace          Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userCard           UserCard?      @relation(fields: [userCardId], references: [id], onDelete: SetNull)
+  usages             BenefitUsage[]
+
+  @@index([workspaceId, validThrough])
+}
+
+model BenefitUsage {
+  id          String        @id @default(cuid())
+  workspaceId String
+  benefitId   String
+  usedCents   Int
+  occurredAt  DateTime
+  evidenceIds Json          @default("[]")
+  createdAt   DateTime      @default(now())
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  benefit     RewardBenefit @relation(fields: [benefitId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, occurredAt])
+}
+
+model RewardScenario {
+  id                    String         @id @default(cuid())
+  workspaceId           String
+  goalId                String?
+  name                  String
+  input                 Json
+  result                Json
+  estimatedValueCents   Int
+  currency              String         @default("USD")
+  confidenceBasisPoints Int
+  evidenceIds           Json           @default("[]")
+  calculatedAt          DateTime       @default(now())
+  expiresAt             DateTime?
+  workspace             Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  goal                  FinancialGoal? @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, calculatedAt])
+}
+
+model GameStop {
+  id           String               @id @default(cuid())
+  workspaceId  String
+  name         String
+  city         String
+  coarseArea   String
+  latitudeE6   Int
+  longitudeE6  Int
+  status       GameStopStatus       @default(ACTIVE)
+  sourceName   String
+  sourceUrl    String?
+  validThrough DateTime?
+  version      Int                  @default(1)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  events       GameStopEvent[]
+  sessions     GameStopSession[]
+  completions  GameStopCompletion[]
+
+  @@index([workspaceId, coarseArea, status])
+  @@index([workspaceId, city, status])
+}
+
+model GameStopEvent {
+  id                String               @id @default(cuid())
+  workspaceId       String
+  gameStopId        String?
+  title             String
+  taskType          GameStopTaskType
+  prompt            String
+  options           Json
+  correctAnswerHash String
+  pointsAward       Int
+  atHome            Boolean              @default(false)
+  activeFrom        DateTime             @default(now())
+  activeThrough     DateTime?
+  evidenceIds       Json                 @default("[]")
+  version           Int                  @default(1)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  workspace         Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  gameStop          GameStop?            @relation(fields: [gameStopId], references: [id], onDelete: Cascade)
+  sessions          GameStopSession[]
+  completions       GameStopCompletion[]
+
+  @@index([workspaceId, activeFrom, activeThrough, atHome])
+}
+
+model GameStopSession {
+  id                      String              @id @default(cuid())
+  workspaceId             String
+  userId                  String
+  eventId                 String
+  gameStopId              String?
+  coarseArea              String?
+  atHome                  Boolean
+  proximityDistanceMeters Int?
+  locationAccuracyMeters  Int?
+  timezoneOffsetMinutes   Int                 @default(0)
+  startedAt               DateTime            @default(now())
+  expiresAt               DateTime
+  completedAt             DateTime?
+  createdAt               DateTime            @default(now())
+  workspace               Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  event                   GameStopEvent       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  gameStop                GameStop?           @relation(fields: [gameStopId], references: [id], onDelete: SetNull)
+  completion              GameStopCompletion?
+
+  @@index([workspaceId, userId, expiresAt])
+}
+
+model GameStopCompletion {
+  id            String          @id @default(cuid())
+  workspaceId   String
+  userId        String
+  sessionId     String          @unique
+  eventId       String
+  gameStopId    String?
+  city          String?
+  coarseArea    String?
+  completedAt   DateTime        @default(now())
+  evidenceIds   Json            @default("[]")
+  createdAt     DateTime        @default(now())
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  session       GameStopSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  event         GameStopEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  gameStop      GameStop?       @relation(fields: [gameStopId], references: [id], onDelete: SetNull)
+  progressAward ProgressAward?
+
+  @@index([workspaceId, userId, completedAt])
+  @@index([workspaceId, userId, gameStopId, completedAt])
+}
+
+model ProgressAward {
+  id              String              @id @default(cuid())
+  workspaceId     String
+  completionId    String              @unique
+  registerEntryId String              @unique
+  points          Int
+  createdAt       DateTime            @default(now())
+  workspace       Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  completion      GameStopCompletion  @relation(fields: [completionId], references: [id], onDelete: Cascade)
+  registerEntry   PointsRegisterEntry @relation(fields: [registerEntryId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+}
+
+model PointsModePreference {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  userId           String
+  activeUntil      DateTime?
+  cityWatchEnabled Boolean   @default(false)
+  cityWatchCities  Json      @default("[]")
+  version          Int       @default(1)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId, activeUntil])
+}
+
+model RewardRule {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  userCardId      String
+  category        String
+  rateBasisPoints Int
+  capCents        Int?
+  validFrom       DateTime?
+  validThrough    DateTime?
+  evidenceIds     Json      @default("[]")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userCard        UserCard  @relation(fields: [userCardId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, category, validThrough])
+}
+
+model Recommendation {
+  id                    String             @id @default(cuid())
+  workspaceId           String
+  type                  RecommendationType
+  title                 String
+  explanation           String
+  estimatedSavingsCents Int
+  currency              String             @default("USD")
+  confidenceBasisPoints Int
+  calculationInputs     Json
+  evidenceIds           Json
+  sourceTimestamps      Json
+  assumptions           Json
+  actionLabel           String
+  actionHref            String?
+  expiresAt             DateTime?
+  dismissedAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  workspace             Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, dismissedAt, expiresAt])
+}
+
+model EvidenceRecord {
+  id          String       @id @default(cuid())
+  workspaceId String
+  kind        EvidenceKind
+  sourceName  String
+  sourceUrl   String?
+  summary     String
+  observedAt  DateTime
+  contentHash String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, contentHash])
+  @@index([workspaceId, observedAt])
+}
+
+model ActionReceipt {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  actionType     String
+  entityType     String
+  entityId       String
+  actorUserId    String?
+  idempotencyKey String
+  details        Json?
+  createdAt      DateTime  @default(now())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, createdAt])
+}
+
+model PopNotification {
+  id          String           @id @default(cuid())
+  workspaceId String
+  kind        NotificationKind
+  title       String
+  detail      String
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, readAt, createdAt])
+}
+
+model PopDevice {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  name        String
+  platform    String
+  publicId    String
+  tokenHash   String?   @unique
+  tokenExpiresAt DateTime?
+  lastSeenAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, publicId])
+  @@index([userId, revokedAt])
+}
+
+model DevicePairing {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  codeHash    String    @unique
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, expiresAt])
+}
+
+model SyncEvent {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  devicePublicId String
+  entityType     String
+  entityId       String
+  operation      String
+  payload        Json
+  entityVersion  Int?
+  idempotencyKey String
+  conflict       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, createdAt])
+}
+
+model IdempotencyRecord {
+  id          String    @id @default(cuid())
+  workspaceId String
+  key         String
+  operation   String
+  statusCode  Int
+  response    Json
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, key, operation])
+  @@index([expiresAt])
+}

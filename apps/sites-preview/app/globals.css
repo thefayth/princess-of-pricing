@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f5f1;
+  --foreground: #171916;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.live-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 25, 24, 0.76);
+  backdrop-filter: blur(5px);
+}
+
+.live-gate-panel {
+  width: min(430px, 100%);
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 18px;
+  padding: 26px;
+  border: 1px solid #d8dcda;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.live-gate-mark {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #e0a11a;
+  border-radius: 6px;
+  color: #986600;
+  font-weight: 900;
+}
+
+.live-gate-kicker { margin: 0; color: #087e78; font-size: 11px; font-weight: 850; text-transform: uppercase; }
+.live-gate h1 { margin: 7px 0 16px; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
+.live-gate-copy, .live-error { margin: 0 0 14px; color: #68706f; font-size: 12px; line-height: 1.5; }
+.live-error { color: #a12f37; }
+.live-plans-link { display: block; margin-top: 16px; color: #086b62; text-decoration: underline; font-size: 12px; }
+.live-login { display: grid; gap: 12px; }
+.live-login label { display: grid; gap: 5px; color: #4d5553; font-size: 11px; font-weight: 750; }
+.live-login input { width: 100%; min-height: 42px; border: 1px solid #cfd4d2; border-radius: 6px; padding: 0 11px; color: #171a1a; background: #fff; }
+.live-login button, .live-retry { min-height: 40px; border: 0; border-radius: 6px; padding: 0 15px; background: #087e78; color: #fff; font-weight: 800; cursor: pointer; }
+
+@media (max-width: 520px) {
+  .live-gate-panel { grid-template-columns: 1fr; padding: 22px; }
+  .live-gate-mark { width: 48px; height: 48px; }
+}

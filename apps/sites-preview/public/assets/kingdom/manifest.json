@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "assets": {
+    "environment": {
+      "file": "kingdom-environment-v1.png",
+      "role": "clean illustrated Savings Kingdom map environment",
+      "dimensions": "1792x1024",
+      "format": "PNG",
+      "source": "original image-generation edit derived from the accepted Savings Kingdom concept",
+      "licenseStatus": "PoP project asset; retain Faith-owned brand and artwork notice"
+    },
+    "avatarSource": {
+      "file": "pop-avatar-source.png",
+      "role": "immutable canonical PoP character reference",
+      "dimensions": "1254x1254",
+      "format": "PNG",
+      "source": "existing canonical PoP avatar",
+      "licenseStatus": "PoP project asset; retain Faith-owned brand and artwork notice"
+    },
+    "avatarCutout": {
+      "file": "pop-avatar-cutout.png",
+      "role": "transparent foreground presentation derivative",
+      "dimensions": "1254x1254",
+      "format": "PNG with alpha",
+      "source": "deterministic chroma-key derivative of avatarSource; character design unchanged",
+      "licenseStatus": "PoP project asset; retain Faith-owned brand and artwork notice"
+    }
+  }
+}

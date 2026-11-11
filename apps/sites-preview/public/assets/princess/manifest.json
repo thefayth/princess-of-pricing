@@ -1,0 +1,12 @@
+{
+  "owner": "Faith Cheltenham",
+  "sourceId": "faithstudio-four-portraits-2026-11-08",
+  "classification": "public_approved",
+  "approval": "Faith requested Princess of Pricing starring her avatar and approved all three selectable designs on 2026-11-10.",
+  "license": "Faith-owned brand/artwork; excluded from AGPL. See BRAND-LICENSE.md.",
+  "derivation": "Exact approved illustrated originals copied without retouching, generation, or recompression. Circular framing is CSS only.",
+  "assets": [
+    { "key": "princess.blue", "file": "faith-blue.png", "original": "faithstudio_light_blue_sq.png", "format": "PNG", "width": 1254, "height": 1254, "sha256": "859477EE2760DE676EE4F380FE7297A8FE428AC302FBD42B49DAAE80F4399026" },
+    { "key": "princess.pink", "file": "faith-pink.png", "original": "faithstudio_pink_sq.png", "format": "PNG", "width": 1254, "height": 1254, "sha256": "65A6EBA2E3A8C3987BE0121B018C9B80F1ED84C313AD67C9F1FA017D0DAAC6FC" }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "prince-of-pricing",
+  "version": "0.2.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "local:up": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/native-dev.ps1",
+    "local:down": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/native-stop.ps1",
+    "local:status": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/native-status.ps1",
+    "db:generate": "npm --workspace @pop/api run prisma:generate",
+    "db:migrate": "npm --workspace @pop/api run prisma:migrate",
+    "db:deploy": "npm --workspace @pop/api run prisma:deploy",
+    "db:seed": "npm --workspace @pop/api run prisma:seed",
+    "dev:web": "npm --workspace @pop/web run dev",
+    "dev:api": "npm --workspace @pop/api run dev",
+    "dev:worker": "npm --workspace @pop/worker run dev",
+    "build": "npm run build:packages && npm --workspace @pop/api run build && npm --workspace @pop/worker run build && npm --workspace @pop/web run build && npm --workspace @pop/desktop run build",
+    "build:packages": "npm --workspace @pop/domain test && npm --workspace @pop/recommendations test",
+    "check": "npm --workspace @pop/api run typecheck && npm --workspace @pop/worker run check && npm --workspace @pop/web run build && npm --workspace @pop/desktop run check",
+    "test": "npm --workspace @pop/domain test && npm --workspace @pop/recommendations test && npm --workspace @pop/game test && npm --workspace @pop/ui test && npm --workspace @pop/web test && npm --workspace @pop/extension test",
+    "audit:secrets": "node tools/secret-scan.mjs"
+  }
+}

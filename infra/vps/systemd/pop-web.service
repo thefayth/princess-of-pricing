@@ -1,0 +1,23 @@
+[Unit]
+Description=Prince of Pricing web application
+After=network-online.target pop-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pop
+Group=pop
+WorkingDirectory=/srv/pop/current
+EnvironmentFile=/etc/pop/pop.env
+Environment=WRANGLER_LOG_PATH=/var/log/pop/wrangler.log
+ExecStart=/usr/local/bin/npm --workspace @pop/web run start -- --hostname 127.0.0.1 --port 4300
+Restart=on-failure
+RestartSec=4
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/pop
+
+[Install]
+WantedBy=multi-user.target

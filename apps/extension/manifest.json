@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Prince of Pricing Observer",
+  "version": "0.1.0",
+  "description": "Observe the active product page only when you ask.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["http://127.0.0.1:48731/*"],
+  "action": {
+    "default_title": "Observe this price",
+    "default_popup": "popup.html"
+  }
+}
