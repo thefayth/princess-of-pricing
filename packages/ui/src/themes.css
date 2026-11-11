@@ -18,6 +18,7 @@
 .sidebar-plan strong { color: var(--teal); display: flex; align-items: center; gap: 3px; font-size: 11px; }
 .pop-shell[data-theme] .topbar { background: var(--surface); gap: 12px; padding: 0 22px; }
 .pop-shell[data-theme] .topbar-actions .freshness { display: none; }
+.pop-shell[data-theme] .user-chip { display: none; }
 .theme-control { display: flex; align-items: center; gap: 6px; margin-left: auto; color: var(--teal); }
 .theme-control select { max-width: 160px; min-height: 36px; padding: 4px 20px 4px 6px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--surface); font: inherit; font-size: 12px; cursor: pointer; }
 .theme-settings { border: 0; border-bottom: 1px solid var(--line); margin: 0; padding: 18px; }

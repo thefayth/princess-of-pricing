@@ -162,5 +162,6 @@ export function KingdomHome({ data, onOpen, assetBase, avatarVisible, theme = "r
     <UrgentQuestDock data={data} />
     {theme === "rose-ledger" ? <div className="kingdom-lower-grid"><KingdomProgressCard data={data} /><EvidencePrivacyTiles data={data} /></div> : null}
     <p className="partner-disclosure"><Tag size={14} /> Paid plans and clearly disclosed referrals support PoP. Compensation never changes recommendation rankings.</p>
+    <a className="text-link" href="https://github.com/thefayth/princess-of-pricing" target="_blank" rel="noreferrer">Open-source code <ArrowUpRight size={14} /></a>
   </div>;
 }
