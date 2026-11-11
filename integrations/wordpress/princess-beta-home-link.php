@@ -14,10 +14,10 @@ add_action('wp_head', function () {
     }
     ?>
     <style id="pop-home-link-style">
-        .pop-home-link { background: #f1f6f5; border-bottom: 1px solid #cddbd8; color: #174d46; }
+        .pop-home-link { background: #12100d; border-bottom: 1px solid #332920; color: #edc694; }
         .pop-home-link > div { max-width: 1280px; margin: 0 auto; padding: 11px 24px; }
         .pop-home-link a { display: inline; color: inherit; font: 600 14px/1.5 system-ui, sans-serif; letter-spacing: 0; text-decoration: underline; text-underline-offset: 3px; }
-        .pop-home-link a:focus-visible { outline: 3px solid #987520; outline-offset: 4px; }
+        .pop-home-link a:focus-visible { outline: 3px solid #cc834b; outline-offset: 4px; }
         .pop-home-link span { font-weight: 400; white-space: nowrap; }
     </style>
     <?php
